@@ -11,7 +11,7 @@
 // You should have received a copy of the GNU General Public License along
 // with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-// Screengen is a package for generating screenshots from video files.
+// Package screengen can be used for generating screenshots from video files.
 package screengen
 
 // #cgo pkg-config: libavcodec libavformat libavutil libswscale
