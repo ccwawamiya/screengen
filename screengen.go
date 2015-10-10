@@ -195,7 +195,7 @@ func (g *Generator) ImageWxH(ts int64, width, height int) (image.Image, error) {
 			ctx,
 			srcSlice,
 			srcStride,
-			C.int(0),
+			0,
 			g.avcContext.height,
 			dst,
 			dstStride,
