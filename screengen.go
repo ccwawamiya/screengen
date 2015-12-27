@@ -34,6 +34,7 @@ import (
 type Generator struct {
 	Fast bool // Imprecise (but faster) seek; set by the user
 
+	Filename           string  // Video file name
 	Width              int     // Width of the video
 	Height             int     // Height of the video
 	Duration           int64   // Duration of the video in milliseconds
@@ -115,6 +116,7 @@ func NewGenerator(fn string) (_ *Generator, err error) {
 	}
 
 	return &Generator{
+		Filename:           fn,
 		Width:              width,
 		Height:             height,
 		Duration:           duration,
