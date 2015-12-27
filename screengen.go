@@ -32,6 +32,8 @@ import (
 
 // Generator is used to generate screenshots from a video file.
 type Generator struct {
+	Fast bool // Imprecise (but faster) seek; set by the user
+
 	Width              int     // Width of the video
 	Height             int     // Height of the video
 	Duration           int64   // Duration of the video in milliseconds
@@ -169,7 +171,7 @@ func (g *Generator) ImageWxH(ts int64, width, height int) (image.Image, error) {
 			return nil, errors.New("can't decode frame")
 		}
 		C.av_free_packet(&pkt)
-		if frameFinished == 0 || pkt.dts < frameNum {
+		if frameFinished == 0 || (!g.Fast && pkt.dts < frameNum) {
 			continue
 		}
 		ctx := C.sws_getContext(
