@@ -98,12 +98,12 @@ func makeScreenList(g *screengen.Generator) error {
 	for i := 0; i < *n; i++ {
 		img, err := g.ImageWxH(d, thWidth, thHeight)
 		if err != nil {
-			log.Fatal("can't extract image:", err)
+			return fmt.Errorf("can't extract image: %v", err)
 		}
 
 		fn, err := writePng(img)
 		if err != nil {
-			log.Fatal("can't write thumbnail:", err)
+			return fmt.Errorf("can't write thumbnail: %v", err)
 		}
 		defer os.Remove(fn)
 
@@ -191,6 +191,6 @@ func main() {
 
 	err = makeScreenList(g)
 	if err != nil {
-		log.Fatal("can't make screenlist:", err)
+		log.Fatal(err)
 	}
 }
