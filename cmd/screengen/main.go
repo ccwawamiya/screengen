@@ -23,6 +23,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 
 	"github.com/opennota/screengen"
@@ -40,18 +41,17 @@ var (
 	quality          = flag.Int("quality", 85, "Output image quality")
 )
 
-func ms2String(ms int64) string {
-	s := ms / 1000
-	h := s / 60 / 60
-	s -= h * 60 * 60
-	m := s / 60
-	s -= m * 60
-	return fmt.Sprintf("%02d:%02d:%02d", h, m, s)
-}
-
 type Image struct {
 	time     int64
 	filename string
+}
+
+func fileSizeHuman(name string) (string, error) {
+	fi, err := os.Stat(name)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%d Mb", fi.Size()/1024/1024), nil
 }
 
 func writePng(img image.Image) (string, error) {
@@ -82,15 +82,21 @@ func divRoundUp(a, b int) int {
 	return c
 }
 
-func fileSize(name string) string {
-	fi, err := os.Stat(name)
-	if err != nil {
-		log.Fatal("can't get file size:", err)
-	}
-	return fmt.Sprintf("%d Mb", fi.Size()/1024/1024)
+func ms2String(ms int64) string {
+	s := ms / 1000
+	h := s / 60 / 60
+	s -= h * 60 * 60
+	m := s / 60
+	s -= m * 60
+	return fmt.Sprintf("%02d:%02d:%02d", h, m, s)
 }
 
 func makeScreenList(g *screengen.Generator) error {
+	fileSize, err := fileSizeHuman(g.Filename)
+	if err != nil {
+		return fmt.Errorf("can't get file size: %v", err)
+	}
+
 	thHeight := int(float64(g.Height) * thWidth / float64(g.Width))
 	images := make([]Image, 0, *n)
 	inc := g.Duration / int64(*n)
@@ -135,8 +141,8 @@ func makeScreenList(g *screengen.Generator) error {
 		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing, thSpacing*2+lineHeight*5, "Audio:"),
 
 		"-font", "LiberationSans",
-		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xoffset, thSpacing*2, g.Filename),
-		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xoffset, thSpacing*2+lineHeight, fileSize(g.Filename)),
+		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xoffset, thSpacing*2, filepath.Base(g.Filename)),
+		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xoffset, thSpacing*2+lineHeight, fileSize),
 		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xoffset, thSpacing*2+lineHeight*2, ms2String(g.Duration)),
 		"-draw", fmt.Sprintf("text %d,%d '%dx%d'", thSpacing+xoffset, thSpacing*2+lineHeight*3, g.Width, g.Height),
 		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xoffset, thSpacing*2+lineHeight*4, g.VideoCodecLongName),
@@ -153,14 +159,17 @@ func makeScreenList(g *screengen.Generator) error {
 	x := 0
 	y := 0
 	for _, img := range images {
+		time := ms2String(img.time)
 		args = append(args,
+			"(",
 			img.filename,
+			"-fill", "black",
+			"-draw", fmt.Sprintf("text %d,%d '%s'", 5, 5, time),
+			"-fill", "white",
+			"-draw", fmt.Sprintf("text %d,%d '%s'", 6, 6, time),
+			")",
 			"-geometry", fmt.Sprintf("+%d+%d", x*(thWidth+thSpacing)+thSpacing, y*(thHeight+thSpacing)+thSpacing),
 			"-composite",
-			"-fill", "black",
-			"-draw", fmt.Sprintf("text %d,%d '%s'", x*(thWidth+thSpacing)+thSpacing+5, y*(thHeight+thSpacing)+thSpacing+5, ms2String(img.time)),
-			"-fill", "white",
-			"-draw", fmt.Sprintf("text %d,%d '%s'", x*(thWidth+thSpacing)+thSpacing+6, y*(thHeight+thSpacing)+thSpacing+6, ms2String(img.time)),
 		)
 
 		x++
@@ -176,11 +185,14 @@ func makeScreenList(g *screengen.Generator) error {
 }
 
 func main() {
-	flag.Parse()
-	if flag.NArg() != 1 {
+	flag.Usage = func() {
 		fmt.Println("Usage: screengen [options] videofile")
 		fmt.Println("Options:")
 		flag.PrintDefaults()
+	}
+	flag.Parse()
+	if flag.NArg() != 1 {
+		flag.Usage()
 		return
 	}
 
