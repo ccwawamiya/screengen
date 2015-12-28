@@ -99,7 +99,7 @@ func makeScreenList(g *screengen.Generator) error {
 
 	thHeight := int(float64(g.Height) * thWidth / float64(g.Width))
 	images := make([]Image, 0, *n)
-	inc := g.Duration / int64(*n)
+	inc := g.Duration / int64(*n) // should divide by *n-1, but the last frame is probably of no interest to us
 	var d int64
 	for i := 0; i < *n; i++ {
 		img, err := g.ImageWxH(d, thWidth, thHeight)
