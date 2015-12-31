@@ -30,12 +30,12 @@ import (
 )
 
 const (
-	thWidth   = 256
+	thWidth   = 280
 	thSpacing = 16
 )
 
 var (
-	n                = flag.Int("n", 27, "Number of thumbnails")
+	n                = flag.Int("n", 33, "Number of thumbnails")
 	thumbnailsPerRow = flag.Int("thumbnails-per-row", 3, "Thumbnails per row")
 	output           = flag.String("o", "output.jpg", "Output file")
 	quality          = flag.Int("quality", 85, "Output image quality")
