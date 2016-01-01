@@ -181,7 +181,9 @@ func makeThumbnailGrid(g *screengen.Generator) error {
 
 	args = append(args, ")", "-append", "-quality", strconv.Itoa(*quality), *output)
 
-	return exec.Command("convert", args...).Run()
+	cmd := exec.Command("convert", args...)
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
 
 func main() {
