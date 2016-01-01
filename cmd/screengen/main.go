@@ -32,7 +32,7 @@ import (
 
 const (
 	thWidth   = 280
-	thSpacing = 16
+	thSpacing = 14
 )
 
 var (
