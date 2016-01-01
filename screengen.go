@@ -142,7 +142,6 @@ func (g *Generator) Image(ts int64) (image.Image, error) {
 
 // ImageWxH returns a screenshot at the ts milliseconds, scaled to the specified width and height.
 func (g *Generator) ImageWxH(ts int64, width, height int) (image.Image, error) {
-	img := image.NewRGBA(image.Rect(0, 0, width, height))
 	frame := C.av_frame_alloc()
 	defer C.av_frame_free(&frame)
 	frameNum := C.av_rescale(
@@ -160,6 +159,7 @@ func (g *Generator) ImageWxH(ts int64, width, height int) (image.Image, error) {
 	) < 0 {
 		return nil, errors.New("can't seek to timestamp")
 	}
+	img := image.NewRGBA(image.Rect(0, 0, width, height))
 	C.avcodec_flush_buffers(g.avcContext)
 	var pkt C.struct_AVPacket
 	var frameFinished C.int
