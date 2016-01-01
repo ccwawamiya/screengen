@@ -39,6 +39,8 @@ var (
 	thumbnailsPerRow = flag.Int("thumbnails-per-row", 3, "Thumbnails per row")
 	output           = flag.String("o", "output.jpg", "Output file")
 	quality          = flag.Int("quality", 85, "Output image quality")
+	font             = flag.String("font", "LiberationSans", "Normal font face")
+	fontBold         = flag.String("font-bold", "LiberationSansB", "Bold font face")
 )
 
 type Image struct {
@@ -132,7 +134,7 @@ func makeThumbnailGrid(g *screengen.Generator) error {
 		"xc:white",
 		"-fill", "black",
 
-		"-font", "LiberationSansB",
+		"-font", *fontBold,
 		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing, thSpacing*2, "Filename:"),
 		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing, thSpacing*2+lineHeight, "Size:"),
 		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing, thSpacing*2+lineHeight*2, "Duration:"),
@@ -140,7 +142,7 @@ func makeThumbnailGrid(g *screengen.Generator) error {
 		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing, thSpacing*2+lineHeight*4, "Video:"),
 		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing, thSpacing*2+lineHeight*5, "Audio:"),
 
-		"-font", "LiberationSans",
+		"-font", *font,
 		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xOffset, thSpacing*2, filepath.Base(g.Filename)),
 		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xOffset, thSpacing*2+lineHeight, fileSize),
 		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xOffset, thSpacing*2+lineHeight*2, ms2String(g.Duration)),
@@ -153,7 +155,7 @@ func makeThumbnailGrid(g *screengen.Generator) error {
 		"-size", fmt.Sprintf("%dx%d", w, h),
 		"xc:white",
 		"-gravity", "northwest",
-		"-font", "LiberationSans",
+		"-font", *font,
 	}
 
 	x := 0
