@@ -124,7 +124,7 @@ func makeScreenList(g *screengen.Generator) error {
 	numRows := divRoundUp(len(images), *thumbnailsPerRow)
 	w := *thumbnailsPerRow*thWidth + (*thumbnailsPerRow+1)*thSpacing
 	h := numRows*thHeight + (numRows+1)*thSpacing
-	const xoffset = 80
+	const xOffset = 80
 	const lineHeight = 16
 	args := []string{
 		"(",
@@ -141,12 +141,12 @@ func makeScreenList(g *screengen.Generator) error {
 		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing, thSpacing*2+lineHeight*5, "Audio:"),
 
 		"-font", "LiberationSans",
-		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xoffset, thSpacing*2, filepath.Base(g.Filename)),
-		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xoffset, thSpacing*2+lineHeight, fileSize),
-		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xoffset, thSpacing*2+lineHeight*2, ms2String(g.Duration)),
-		"-draw", fmt.Sprintf("text %d,%d '%dx%d'", thSpacing+xoffset, thSpacing*2+lineHeight*3, g.Width, g.Height),
-		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xoffset, thSpacing*2+lineHeight*4, g.VideoCodecLongName),
-		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xoffset, thSpacing*2+lineHeight*5, g.AudioCodecLongName),
+		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xOffset, thSpacing*2, filepath.Base(g.Filename)),
+		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xOffset, thSpacing*2+lineHeight, fileSize),
+		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xOffset, thSpacing*2+lineHeight*2, ms2String(g.Duration)),
+		"-draw", fmt.Sprintf("text %d,%d '%dx%d'", thSpacing+xOffset, thSpacing*2+lineHeight*3, g.Width, g.Height),
+		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xOffset, thSpacing*2+lineHeight*4, g.VideoCodecLongName),
+		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xOffset, thSpacing*2+lineHeight*5, g.AudioCodecLongName),
 		")",
 
 		"(",
