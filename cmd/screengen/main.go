@@ -21,6 +21,7 @@ import (
 	"image/png"
 	"io/ioutil"
 	"log"
+	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -48,12 +49,16 @@ type Image struct {
 	filename string
 }
 
+func divRoundHalfUp(a, b int64) int64 {
+	return int64(math.Floor(float64(a)/float64(b) + 0.5))
+}
+
 func fileSizeHuman(name string) (string, error) {
 	fi, err := os.Stat(name)
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%d Mb", fi.Size()/1024/1024), nil
+	return fmt.Sprintf("%d Mb", divRoundHalfUp(fi.Size(), 1024*1024)), nil
 }
 
 func writePng(img image.Image) (string, error) {
