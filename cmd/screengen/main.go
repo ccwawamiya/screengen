@@ -91,7 +91,7 @@ func ms2String(ms int64) string {
 	return fmt.Sprintf("%02d:%02d:%02d", h, m, s)
 }
 
-func makeScreenList(g *screengen.Generator) error {
+func makeThumbnailGrid(g *screengen.Generator) error {
 	fileSize, err := fileSizeHuman(g.Filename)
 	if err != nil {
 		return fmt.Errorf("can't get file size: %v", err)
@@ -201,7 +201,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = makeScreenList(g)
+	err = makeThumbnailGrid(g)
 	if err != nil {
 		log.Fatal(err)
 	}
