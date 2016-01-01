@@ -1,7 +1,7 @@
 screengen [![License](http://img.shields.io/:license-gpl3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0.html) [![GoDoc](https://godoc.org/github.com/opennota/screengen?status.svg)](http://godoc.org/github.com/opennota/screengen)
 =========
 
-A library for generating screenshots from video files, and a command-line tool.
+A library for generating screenshots from video files, and a command-line tool for generating thumbnail grids.
 
 ## Install the package
 

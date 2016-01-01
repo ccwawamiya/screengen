@@ -11,7 +11,7 @@
 // You should have received a copy of the GNU General Public License along
 // with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-// A tool that makes screenlists from video files with the help of ImageMagick's convert.
+// A tool that generates thumbnail grids from video files with the help of ImageMagick's convert.
 package main
 
 import (
