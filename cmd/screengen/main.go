@@ -26,6 +26,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/opennota/screengen"
 )
@@ -98,6 +99,8 @@ func ms2String(ms int64) string {
 	return fmt.Sprintf("%02d:%02d:%02d", h, m, s)
 }
 
+var escaper = strings.NewReplacer("'", `\'`, `\`, `\\`)
+
 func makeThumbnailGrid(g *screengen.Generator) error {
 	fileSize, err := fileSizeHuman(g.Filename)
 	if err != nil {
@@ -148,7 +151,7 @@ func makeThumbnailGrid(g *screengen.Generator) error {
 		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing, thSpacing*2+lineHeight*5, "Audio:"),
 
 		"-font", *font,
-		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xOffset, thSpacing*2, filepath.Base(g.Filename)),
+		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xOffset, thSpacing*2, escaper.Replace(filepath.Base(g.Filename))),
 		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xOffset, thSpacing*2+lineHeight, fileSize),
 		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xOffset, thSpacing*2+lineHeight*2, ms2String(g.Duration)),
 		"-draw", fmt.Sprintf("text %d,%d '%dx%d'", thSpacing+xOffset, thSpacing*2+lineHeight*3, g.Width, g.Height),
