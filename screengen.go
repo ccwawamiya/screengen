@@ -155,7 +155,16 @@ func (g *Generator) ImageWxH(ts int64, width, height int) (image.Image, error) {
 		frameNum,
 		C.AVSEEK_FLAG_FRAME,
 	) < 0 {
-		return nil, errors.New("can't seek to timestamp")
+		if C.avformat_seek_file(
+			g.avfContext,
+			C.int(g.vStreamIndex),
+			0,
+			frameNum,
+			frameNum,
+			C.AVSEEK_FLAG_ANY,
+		) < 0 {
+			return nil, errors.New("can't seek to timestamp")
+		}
 	}
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
 	frame := C.av_frame_alloc()
@@ -170,7 +179,7 @@ func (g *Generator) ImageWxH(ts int64, width, height int) (image.Image, error) {
 		}
 		if C.avcodec_decode_video2(g.avcContext, frame, &frameFinished, &pkt) <= 0 {
 			C.av_free_packet(&pkt)
-			return nil, errors.New("can't decode frame")
+			continue
 		}
 		C.av_free_packet(&pkt)
 		if frameFinished == 0 || (!g.Fast && pkt.dts < frameNum) {
