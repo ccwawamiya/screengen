@@ -154,7 +154,7 @@ func makeThumbnailGrid(g *screengen.Generator) error {
 		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xOffset, thSpacing*2, escaper.Replace(filepath.Base(g.Filename))),
 		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xOffset, thSpacing*2+lineHeight, fileSize),
 		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xOffset, thSpacing*2+lineHeight*2, ms2String(g.Duration)),
-		"-draw", fmt.Sprintf("text %d,%d '%dx%d'", thSpacing+xOffset, thSpacing*2+lineHeight*3, g.Width, g.Height),
+		"-draw", fmt.Sprintf("text %d,%d '%d×%d'", thSpacing+xOffset, thSpacing*2+lineHeight*3, g.Width, g.Height),
 		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xOffset, thSpacing*2+lineHeight*4, g.VideoCodecLongName),
 		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xOffset, thSpacing*2+lineHeight*5, g.AudioCodecLongName),
 		")",
