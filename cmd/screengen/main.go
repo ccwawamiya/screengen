@@ -39,7 +39,7 @@ const (
 var (
 	n                = flag.Int("n", 33, "Number of thumbnails")
 	thumbnailsPerRow = flag.Int("thumbnails-per-row", 3, "Thumbnails per row")
-	output           = flag.String("o", "output.jpg", "Output file")
+	output           = flag.String("o", "", "Output file (default: video file name + .jpg)")
 	quality          = flag.Int("quality", 85, "Output image quality")
 	font             = flag.String("font", "LiberationSans", "Normal font face")
 	fontBold         = flag.String("font-bold", "LiberationSansB", "Bold font face")
@@ -208,7 +208,12 @@ func main() {
 		return
 	}
 
-	g, err := screengen.NewGenerator(flag.Arg(0))
+	filename := flag.Arg(0)
+	if *output == "" {
+		*output = filepath.Base(filename) + ".jpg"
+	}
+
+	g, err := screengen.NewGenerator(filename)
 	if err != nil {
 		log.Fatal(err)
 	}
