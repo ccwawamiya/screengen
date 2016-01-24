@@ -43,6 +43,7 @@ var (
 	quality          = flag.Int("quality", 85, "Output image quality")
 	font             = flag.String("font", "LiberationSans", "Normal font face")
 	fontBold         = flag.String("font-bold", "LiberationSansB", "Bold font face")
+	comment          = flag.String("comment", "", "Comment")
 )
 
 type Image struct {
@@ -157,6 +158,18 @@ func makeThumbnailGrid(g *screengen.Generator) error {
 		"-draw", fmt.Sprintf("text %d,%d '%dx%d'", thSpacing+xOffset, thSpacing*2+lineHeight*3, g.Width, g.Height),
 		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xOffset, thSpacing*2+lineHeight*4, g.VideoCodecLongName),
 		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xOffset, thSpacing*2+lineHeight*5, g.AudioCodecLongName),
+	}
+
+	if *comment != "" {
+		args = append(args,
+			"-font", *fontBold,
+			"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing, thSpacing*2+lineHeight*6, "Comment:"),
+			"-font", *font,
+			"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xOffset, thSpacing*2+lineHeight*6, escaper.Replace(*comment)),
+		)
+	}
+
+	args = append(args,
 		")",
 
 		"(",
@@ -164,7 +177,7 @@ func makeThumbnailGrid(g *screengen.Generator) error {
 		"xc:white",
 		"-gravity", "northwest",
 		"-font", *font,
-	}
+	)
 
 	x := 0
 	y := 0
