@@ -20,6 +20,7 @@ package screengen
 // #include <libavformat/avformat.h>
 // #include <libswscale/swscale.h>
 // #include <libavutil/log.h>
+// #include <libavutil/mathematics.h>
 import "C"
 
 import (
@@ -99,8 +100,8 @@ func NewGenerator(fn string) (_ *Generator, err error) {
 	}
 	width := int(avcCtx.width)
 	height := int(avcCtx.height)
-	fps := (float64(streams[vStreamIndex].r_frame_rate.num) /
-		float64(streams[vStreamIndex].r_frame_rate.den))
+	fps := (float64(streams[vStreamIndex].avg_frame_rate.num) /
+		float64(streams[vStreamIndex].avg_frame_rate.den))
 	vCodecName := strings.ToUpper(C.GoString(vCodec.name))
 	vCodecHuman := C.GoString(vCodec.long_name)
 
