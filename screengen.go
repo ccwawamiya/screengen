@@ -21,6 +21,19 @@ package screengen
 // #include <libswscale/swscale.h>
 // #include <libavutil/log.h>
 // #include <libavutil/mathematics.h>
+//
+// // Work around the Cgo pointer passing rules introduced in Go 1.6.
+// int sws_scale_wrapper(
+// 			struct SwsContext *c,
+// 			const uint8_t *const srcSlice[],
+// 			const int srcStride[],
+// 			int srcSliceY,
+// 			int srcSliceH,
+// 			uint8_t dst[],
+// 			const int dstStride[]
+// 			) {
+// 	return sws_scale(c, srcSlice, srcStride, srcSliceY, srcSliceH, &dst, dstStride);
+// }
 import "C"
 
 import (
@@ -174,6 +187,8 @@ func (g *Generator) ImageWxH(ts int64, width, height int) (image.Image, error) {
 	var pkt C.struct_AVPacket
 	var frameFinished C.int
 	for C.av_read_frame(g.avfContext, &pkt) == 0 {
+		pkt.priv = nil // zero uninitialized memory (see https://github.com/golang/go/issues/14426)
+
 		if int(pkt.stream_index) != g.vStreamIndex {
 			C.av_free_packet(&pkt)
 			continue
@@ -203,9 +218,10 @@ func (g *Generator) ImageWxH(ts int64, width, height int) (image.Image, error) {
 		}
 		srcSlice := (**C.uint8_t)(&frame.data[0])
 		srcStride := (*C.int)(&frame.linesize[0])
-		dst := (**C.uint8_t)(unsafe.Pointer(&img.Pix))
+		hdr := (*reflect.SliceHeader)(unsafe.Pointer(&img.Pix))
+		dst := (*C.uint8_t)(unsafe.Pointer(hdr.Data))
 		dstStride := (*C.int)(unsafe.Pointer(&[1]int{img.Stride}))
-		C.sws_scale(
+		C.sws_scale_wrapper(
 			ctx,
 			srcSlice,
 			srcStride,
