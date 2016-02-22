@@ -108,7 +108,7 @@ func makeThumbnailGrid(g *screengen.Generator) error {
 		return fmt.Errorf("can't get file size: %v", err)
 	}
 
-	thHeight := int(float64(g.Height) * thWidth / float64(g.Width))
+	thHeight := int(float64(g.Height()) * thWidth / float64(g.Width()))
 	images := make([]Image, 0, *n)
 	inc := g.Duration / int64(*n)
 	d := inc / 2
@@ -155,7 +155,7 @@ func makeThumbnailGrid(g *screengen.Generator) error {
 		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xOffset, thSpacing*2, escaper.Replace(filepath.Base(g.Filename))),
 		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xOffset, thSpacing*2+lineHeight, fileSize),
 		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xOffset, thSpacing*2+lineHeight*2, ms2String(g.Duration)),
-		"-draw", fmt.Sprintf("text %d,%d '%dx%d'", thSpacing+xOffset, thSpacing*2+lineHeight*3, g.Width, g.Height),
+		"-draw", fmt.Sprintf("text %d,%d '%dx%d'", thSpacing+xOffset, thSpacing*2+lineHeight*3, g.Width(), g.Height()),
 		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xOffset, thSpacing*2+lineHeight*4, g.VideoCodecLongName),
 		"-draw", fmt.Sprintf("text %d,%d '%s'", thSpacing+xOffset, thSpacing*2+lineHeight*5, g.AudioCodecLongName),
 	}

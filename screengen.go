@@ -49,8 +49,8 @@ type Generator struct {
 	Fast bool // Imprecise (but faster) seek; set by the user
 
 	Filename           string  // Video file name
-	Width              int     // Width of the video
-	Height             int     // Height of the video
+	width              int     // Width of the video
+	height             int     // Height of the video
 	Duration           int64   // Duration of the video in milliseconds
 	VideoCodec         string  // Name of the video codec
 	VideoCodecLongName string  // Readable/long name of the video codec
@@ -65,6 +65,12 @@ type Generator struct {
 	avfContext         *C.struct_AVFormatContext
 	avcContext         *C.struct_AVCodecContext
 }
+
+// Width returns the width of the video
+func (g *Generator) Width() int { return g.width }
+
+// Height returns the height of the video
+func (g *Generator) Height() int { return g.height }
 
 // NewGenerator returns new generator of screenshots for the video file fn.
 func NewGenerator(fn string) (_ *Generator, err error) {
@@ -131,8 +137,8 @@ func NewGenerator(fn string) (_ *Generator, err error) {
 
 	return &Generator{
 		Filename:           fn,
-		Width:              width,
-		Height:             height,
+		width:              width,
+		height:             height,
 		Duration:           duration,
 		VideoCodec:         vCodecName,
 		VideoCodecLongName: vCodecHuman,
@@ -151,7 +157,7 @@ func NewGenerator(fn string) (_ *Generator, err error) {
 
 // Image returns a screenshot at the ts milliseconds.
 func (g *Generator) Image(ts int64) (image.Image, error) {
-	return g.ImageWxH(ts, g.Width, g.Height)
+	return g.ImageWxH(ts, g.width, g.height)
 }
 
 // ImageWxH returns a screenshot at the ts milliseconds, scaled to the specified width and height.
@@ -202,8 +208,8 @@ func (g *Generator) ImageWxH(ts int64, width, height int) (image.Image, error) {
 			continue
 		}
 		ctx := C.sws_getContext(
-			C.int(g.Width),
-			C.int(g.Height),
+			C.int(g.width),
+			C.int(g.height),
 			g.avcContext.pix_fmt,
 			C.int(width),
 			C.int(height),
