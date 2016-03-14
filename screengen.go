@@ -243,6 +243,7 @@ func (g *Generator) ImageWxH(ts int64, width, height int) (image.Image, error) {
 
 // Close closes the internal ffmpeg context.
 func (g *Generator) Close() error {
+	C.avcodec_close(g.avcContext)
 	C.avformat_close_input(&g.avfContext)
 	return nil
 }
