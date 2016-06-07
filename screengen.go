@@ -213,7 +213,7 @@ func (g *Generator) ImageWxH(ts int64, width, height int) (image.Image, error) {
 			g.avcContext.pix_fmt,
 			C.int(width),
 			C.int(height),
-			C.PIX_FMT_RGBA,
+			C.AV_PIX_FMT_RGBA,
 			C.SWS_BICUBIC,
 			nil,
 			nil,
