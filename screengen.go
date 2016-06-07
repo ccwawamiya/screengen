@@ -34,6 +34,15 @@ package screengen
 // 			) {
 // 	return sws_scale(c, srcSlice, srcStride, srcSliceY, srcSliceH, &dst, dstStride);
 // }
+//
+// // ffmpeg < 3.x compatibility.
+// int av_read_frame_wrapper(AVFormatContext *avfCtx, AVPacket *pkt) {
+// 	int ret = av_read_frame(avfCtx, pkt);
+// #if LIBAVCODEC_VERSION_MAJOR < 57
+// 	pkt->priv = NULL; // zero uninitialized memory (see https://github.com/golang/go/issues/14426)
+// #endif
+// 	return ret;
+// }
 import "C"
 
 import (
@@ -192,9 +201,7 @@ func (g *Generator) ImageWxH(ts int64, width, height int) (image.Image, error) {
 	C.avcodec_flush_buffers(g.avcContext)
 	var pkt C.struct_AVPacket
 	var frameFinished C.int
-	for C.av_read_frame(g.avfContext, &pkt) == 0 {
-		pkt.priv = nil // zero uninitialized memory (see https://github.com/golang/go/issues/14426)
-
+	for C.av_read_frame_wrapper(g.avfContext, &pkt) == 0 {
 		if int(pkt.stream_index) != g.vStreamIndex {
 			C.av_free_packet(&pkt)
 			continue
