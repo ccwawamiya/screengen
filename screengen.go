@@ -243,6 +243,7 @@ func (g *Generator) ImageWxH(ts int64, width, height int) (image.Image, error) {
 			dst,
 			dstStride,
 		)
+		C.sws_freeContext(ctx)
 		break
 	}
 	return img, nil
