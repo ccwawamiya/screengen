@@ -11,3 +11,6 @@ A library for generating screenshots from video files, and a command-line tool f
 
     go get github.com/opennota/screengen/cmd/screengen
 
+## Also
+
+There is [another program](http://kochkin.tk/doku.php/screengen/start) by that name.
