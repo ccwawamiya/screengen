@@ -13,4 +13,4 @@ A library for generating screenshots from video files, and a command-line tool f
 
 ## Also
 
-There is [another program](http://kochkin.tk/doku.php/screengen/start) by that name.
+There is a [similar program](http://kochkin.tk/doku.php/screengen/start) by that name.
