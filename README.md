@@ -13,4 +13,6 @@ A library for generating screenshots from video files, and a command-line tool f
 
 ## Also
 
-There is a [similar program](http://kochkin.tk/doku.php/screengen/start) by that name.
+* There is a [similar program](http://kochkin.tk/doku.php/screengen/start) by that name.
+
+* For a more feature-rich command-line thumbnail grid generator (which also doesn't require ImageMagick) see [mutschler/mt](https://github.com/mutschler/mt).
