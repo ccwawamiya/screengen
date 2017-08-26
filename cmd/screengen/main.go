@@ -25,7 +25,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/opennota/screengen"
@@ -202,7 +201,7 @@ func makeThumbnailGrid(g *screengen.Generator) error {
 		}
 	}
 
-	args = append(args, ")", "-append", "-quality", strconv.Itoa(*quality), *output)
+	args = append(args, ")", "-append", "-quality", fmt.Sprint(*quality), *output)
 
 	cmd := exec.Command("convert", args...)
 	cmd.Stderr = os.Stderr
