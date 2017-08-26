@@ -22,6 +22,8 @@ package screengen
 // #include <libavutil/log.h>
 // #include <libavutil/mathematics.h>
 //
+// const AVERROR_EAGAIN = AVERROR(EAGAIN);
+//
 // // Work around the Cgo pointer passing rules introduced in Go 1.6.
 // int sws_scale_wrapper(
 // 			struct SwsContext *c,
@@ -33,15 +35,6 @@ package screengen
 // 			const int dstStride[]
 // 			) {
 // 	return sws_scale(c, srcSlice, srcStride, srcSliceY, srcSliceH, &dst, dstStride);
-// }
-//
-// // ffmpeg < 3.x compatibility.
-// int av_read_frame_wrapper(AVFormatContext *avfCtx, AVPacket *pkt) {
-// 	int ret = av_read_frame(avfCtx, pkt);
-// #if LIBAVCODEC_VERSION_MAJOR < 57
-// 	pkt->priv = NULL; // zero uninitialized memory (see https://github.com/golang/go/issues/14426)
-// #endif
-// 	return ret;
 // }
 import "C"
 
@@ -199,19 +192,25 @@ func (g *Generator) ImageWxH(ts int64, width, height int) (image.Image, error) {
 	frame := C.av_frame_alloc()
 	defer C.av_frame_free(&frame)
 	C.avcodec_flush_buffers(g.avcContext)
-	var pkt C.struct_AVPacket
-	var frameFinished C.int
-	for C.av_read_frame_wrapper(g.avfContext, &pkt) == 0 {
+	pkt := C.av_packet_alloc()
+	for C.av_read_frame(g.avfContext, pkt) == 0 {
 		if int(pkt.stream_index) != g.vStreamIndex {
-			C.av_free_packet(&pkt)
+			C.av_packet_unref(pkt)
 			continue
 		}
-		if C.avcodec_decode_video2(g.avcContext, frame, &frameFinished, &pkt) <= 0 {
-			C.av_free_packet(&pkt)
+		if C.avcodec_send_packet(g.avcContext, pkt) != 0 {
+			C.av_packet_unref(pkt)
+			return nil, errors.New("avcodec_send_packet failed")
+		}
+		dts := pkt.dts
+		C.av_packet_unref(pkt)
+		if ret := C.avcodec_receive_frame(g.avcContext, frame); ret != 0 {
+			if ret != C.AVERROR_EAGAIN {
+				return nil, errors.New("avcodec_receive_frame failed")
+			}
 			continue
 		}
-		C.av_free_packet(&pkt)
-		if frameFinished == 0 || (!g.Fast && pkt.dts < frameNum) {
+		if !g.Fast && dts < frameNum {
 			continue
 		}
 		ctx := C.sws_getContext(
