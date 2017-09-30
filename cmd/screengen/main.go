@@ -111,15 +111,43 @@ func makeThumbnailGrid(g *screengen.Generator) error {
 	images := make([]Image, 0, *n)
 	inc := g.Duration / int64(*n)
 	d := inc / 2
+	generatorFailed := false
 	for i := 0; i < *n; i++ {
-		img, err := g.ImageWxH(d, thWidth, thHeight)
-		if err != nil {
-			return fmt.Errorf("can't extract image: %v", err)
-		}
+		fn := ""
 
-		fn, err := writePng(img)
-		if err != nil {
-			return fmt.Errorf("can't write thumbnail: %v", err)
+		if !generatorFailed {
+			img, err := g.ImageWxH(d, thWidth, thHeight)
+			if err != nil {
+				generatorFailed = true
+				i--
+				continue
+			}
+
+			fn, err = writePng(img)
+			if err != nil {
+				return fmt.Errorf("can't write thumbnail: %v", err)
+			}
+		} else {
+			f, err := ioutil.TempFile("", "screengen")
+			if err != nil {
+				return fmt.Errorf("can't create temp file: %v", err)
+			}
+			fn = f.Name()
+			f.Close()
+			args := []string{
+				"-ss", fmt.Sprintf("%.3f", float64(d)/1000),
+				"-i", g.Filename,
+				"-vframes", "1",
+				"-f", "image2",
+				"-vf", fmt.Sprintf("scale=%d:%d", thWidth, thHeight),
+				"-vcodec", "png",
+				"-y",
+				fn,
+			}
+			cmd := exec.Command("ffmpeg", args...)
+			if err := cmd.Run(); err != nil {
+				return fmt.Errorf("error invoking ffmpeg: %v\ncommand line was: ffmpeg %s", err, strings.Join(args, " "))
+			}
 		}
 		defer os.Remove(fn)
 
