@@ -5,6 +5,10 @@ go:
   - 1.x
   - master
 
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y libavcodec-dev libavformat-dev libavutil-dev libswscale-dev
+
 install:
   - go build ./...
 
