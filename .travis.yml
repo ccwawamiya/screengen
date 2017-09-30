@@ -10,7 +10,7 @@ before_install:
   - sudo apt-get install -y libavcodec-dev libavformat-dev libavutil-dev libswscale-dev
 
 install:
-  - go build ./...
+  - go build -x ./...
 
 script:
   - test -z "$(gofmt -l . | tee /dev/stderr)"
