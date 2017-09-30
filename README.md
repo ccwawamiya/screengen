@@ -5,11 +5,11 @@ A library for generating screenshots from video files, and a command-line tool f
 
 ## Install the package
 
-    go get github.com/opennota/screengen
+    go get -u github.com/opennota/screengen
 
 ## Install the command-line tool
 
-    go get github.com/opennota/screengen/cmd/screengen
+    go get -u github.com/opennota/screengen/cmd/screengen
 
 ## Also
 
