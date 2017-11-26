@@ -22,10 +22,13 @@ import (
 	"io/ioutil"
 	"log"
 	"math"
+	"math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
+	"time"
 
 	"github.com/opennota/screengen"
 )
@@ -43,6 +46,7 @@ var (
 	font             = flag.String("font", "LiberationSans", "Normal font face")
 	fontBold         = flag.String("font-bold", "LiberationSansB", "Bold font face")
 	comment          = flag.String("comment", "", "Comment")
+	random           = flag.Bool("r", false, "Take screenshots at random moments")
 )
 
 type Image struct {
@@ -109,10 +113,24 @@ func makeThumbnailGrid(g *screengen.Generator) error {
 
 	thHeight := int(float64(g.Height()) * thWidth / float64(g.Width()))
 	images := make([]Image, 0, *n)
-	inc := g.Duration / int64(*n)
-	d := inc / 2
+	cuts := make([]int64, 0, *n)
+	if *random {
+		rand.Seed(time.Now().UnixNano())
+		for i := 0; i < *n; i++ {
+			cuts = append(cuts, rand.Int63n(g.Duration))
+		}
+		sort.Slice(cuts, func(i, j int) bool { return cuts[i] < cuts[j] })
+	} else {
+		inc := g.Duration / int64(*n)
+		d := inc / 2
+		for i := 0; i < *n; i++ {
+			cuts = append(cuts, d)
+			d += inc
+		}
+	}
 	generatorFailed := false
-	for i := 0; i < *n; i++ {
+	for i := 0; i < len(cuts); i++ {
+		d := cuts[i]
 		fn := ""
 
 		if !generatorFailed {
@@ -155,8 +173,6 @@ func makeThumbnailGrid(g *screengen.Generator) error {
 			time:     d,
 			filename: fn,
 		})
-
-		d += inc
 	}
 
 	numRows := divRoundUp(len(images), *thumbnailsPerRow)
