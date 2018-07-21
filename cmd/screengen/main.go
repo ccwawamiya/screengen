@@ -47,6 +47,7 @@ var (
 	fontBold         = flag.String("font-bold", "LiberationSansB", "Bold font face")
 	comment          = flag.String("comment", "", "Comment")
 	random           = flag.Bool("r", false, "Take screenshots at random moments")
+	fixAspectRatio   = flag.Float64("fix_aspect_ratio", 0, "Fix aspect ratio in the rare cases when it is determined incorrectly; use 1.778 for 1920x1080 etc.")
 )
 
 type Image struct {
@@ -112,6 +113,9 @@ func makeThumbnailGrid(g *screengen.Generator) error {
 	}
 
 	thHeight := int(float64(g.Height()) * thWidth / float64(g.Width()))
+	if *fixAspectRatio != 0 {
+		thHeight = int(thWidth / *fixAspectRatio)
+	}
 	images := make([]Image, 0, *n)
 	cuts := make([]int64, 0, *n)
 	if *random {
