@@ -15,7 +15,7 @@
 package screengen
 
 // #cgo pkg-config: libavcodec libavformat libavutil libswscale
-// #cgo CFLAGS: -I/user/include
+// #cgo CFLAGS: -I/usr/include
 // #include <stdlib.h>
 // #include <libavcodec/avcodec.h>
 // #include <libavformat/avformat.h>
