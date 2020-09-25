@@ -1,3 +1,3 @@
-module gitlab.com/opennota/screengen
+module github.com/ccwawamiya/screengen
 
 go 1.13
