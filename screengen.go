@@ -15,6 +15,7 @@
 package screengen
 
 // #cgo pkg-config: libavcodec libavformat libavutil libswscale
+// #cgo CFLAGS: -I/user/include
 // #include <stdlib.h>
 // #include <libavcodec/avcodec.h>
 // #include <libavformat/avformat.h>
@@ -22,7 +23,7 @@ package screengen
 // #include <libavutil/log.h>
 // #include <libavutil/mathematics.h>
 //
-// const AVERROR_EAGAIN = AVERROR(EAGAIN);
+// const int AVERROR_EAGAIN = AVERROR(EAGAIN);
 //
 // // Work around the Cgo pointer passing rules introduced in Go 1.6.
 // int sws_scale_wrapper(
@@ -35,6 +36,13 @@ package screengen
 // 			const int dstStride[]
 // 			) {
 // 	return sws_scale(c, srcSlice, srcStride, srcSliceY, srcSliceH, &dst, dstStride);
+// }
+//
+// // av_register_all is deprecated since ffmpeg 4.
+// void av_register_all_wrapper(void) {
+// #if LIBAVFORMAT_VERSION_MAJOR < 58
+// 	av_register_all();
+// #endif
 // }
 import "C"
 
@@ -63,10 +71,24 @@ type Generator struct {
 	vStreamIndex       int
 	aStreamIndex       int
 	Bitrate            int
+	Orientation        Orientation
 	streams            []*C.struct_AVStream
 	avfContext         *C.struct_AVFormatContext
 	avcContext         *C.struct_AVCodecContext
 }
+
+type Orientation int
+
+const (
+	AVIdentity Orientation = 0
+
+	AVRotation90 = 1 << iota
+	AVRotation180
+	AVRotation270
+	AVRotationCustom
+	AVFlipHorizontal
+	AVFlipVertical
+)
 
 // Width returns the width of the video
 func (g *Generator) Width() int { return g.width }
@@ -137,6 +159,46 @@ func NewGenerator(fn string) (_ *Generator, err error) {
 		}
 	}
 
+	displayMatrix := C.av_stream_get_side_data(streams[vStreamIndex], C.AV_PKT_DATA_DISPLAYMATRIX, nil)
+	orientation := AVIdentity
+	if displayMatrix != nil {
+		hdr := reflect.SliceHeader{
+			Data: uintptr(unsafe.Pointer(displayMatrix)),
+			Len:  9,
+			Cap:  9,
+		}
+		matrix := *(*[]C.int32_t)(unsafe.Pointer(&hdr))
+		det := matrix[0]*matrix[4] - matrix[1]*matrix[3]
+		matrixCopy := make([]C.int32_t, 9)
+		copy(matrixCopy, matrix)
+		matrix = matrixCopy
+		if det < 0 {
+			orientation = AVFlipHorizontal
+			flip := []int{-1, 0, 1}
+			for i := 0; i < 9; i++ {
+				matrix[i] *= C.int32_t(flip[i%3])
+			}
+		}
+		if matrix[1] == 1<<16 && matrix[3] == -(1<<16) {
+			orientation |= AVRotation90
+		} else if matrix[0] == -(1<<16) && matrix[4] == -(1<<16) {
+			if det < 0 {
+				orientation = AVFlipVertical
+			} else {
+				orientation |= AVRotation180
+			}
+		} else if matrix[1] == -(1<<16) && matrix[3] == 1<<16 {
+			orientation |= AVRotation270
+		} else if matrix[0] == 1<<16 && matrix[4] == 1<<16 {
+			orientation |= AVIdentity
+		} else {
+			orientation |= AVRotationCustom
+		}
+		if orientation == AVRotation90 || orientation == AVRotation270 {
+			width, height = height, width
+		}
+	}
+
 	return &Generator{
 		Filename:           fn,
 		width:              width,
@@ -151,6 +213,7 @@ func NewGenerator(fn string) (_ *Generator, err error) {
 		aStreamIndex:       aStreamIndex,
 		FPS:                fps,
 		Bitrate:            bitrate,
+		Orientation:        orientation,
 		streams:            streams,
 		avfContext:         avfCtx,
 		avcContext:         avcCtx,
@@ -188,6 +251,11 @@ func (g *Generator) ImageWxH(ts int64, width, height int) (image.Image, error) {
 			return nil, errors.New("can't seek to timestamp")
 		}
 	}
+	gw, gh := g.width, g.height
+	if o := g.Orientation; o == AVRotation90 || o == AVRotation270 {
+		width, height = height, width
+		gw, gh = gh, gw
+	}
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
 	frame := C.av_frame_alloc()
 	defer C.av_frame_free(&frame)
@@ -214,8 +282,8 @@ func (g *Generator) ImageWxH(ts int64, width, height int) (image.Image, error) {
 			continue
 		}
 		ctx := C.sws_getContext(
-			C.int(g.width),
-			C.int(g.height),
+			C.int(gw),
+			C.int(gh),
 			g.avcContext.pix_fmt,
 			C.int(width),
 			C.int(height),
@@ -228,8 +296,8 @@ func (g *Generator) ImageWxH(ts int64, width, height int) (image.Image, error) {
 		if ctx == nil {
 			return nil, errors.New("can't allocate scaling context")
 		}
-		srcSlice := (**C.uint8_t)(&frame.data[0])
-		srcStride := (*C.int)(&frame.linesize[0])
+		srcSlice := &frame.data[0]
+		srcStride := &frame.linesize[0]
 		hdr := (*reflect.SliceHeader)(unsafe.Pointer(&img.Pix))
 		dst := (*C.uint8_t)(unsafe.Pointer(hdr.Data))
 		dstStride := (*C.int)(unsafe.Pointer(&[1]int{img.Stride}))
@@ -245,6 +313,16 @@ func (g *Generator) ImageWxH(ts int64, width, height int) (image.Image, error) {
 		C.sws_freeContext(ctx)
 		break
 	}
+
+	switch g.Orientation {
+	case AVRotation90:
+		img = rotate90(img)
+	case AVRotation180:
+		img = rotate180(img)
+	case AVRotation270:
+		img = rotate270(img)
+	}
+
 	return img, nil
 }
 
@@ -257,5 +335,5 @@ func (g *Generator) Close() error {
 
 func init() {
 	C.av_log_set_level(C.AV_LOG_QUIET)
-	C.av_register_all()
+	C.av_register_all_wrapper()
 }
